@@ -21,7 +21,7 @@ void cuda_kMeans_ClearAll_wrapper(float* inputSums_x, float* inputSums_y, int* i
 
 
 int main(int argc, char* argv[]) {
-    std::string filename = "datasets/dataset100000.csv";
+    std::string filename = "datasets/dataset200000.csv";
     std::vector<float> inputPoints;
     std::vector<float> inputClusters_x;
     std::vector<float> inputClusters_y;
@@ -65,8 +65,6 @@ int main(int argc, char* argv[]) {
     double t2 = omp_get_wtime() - t1;
     std::cout << "K Means completed in: " << t2 << std::endl;
 
-    thrust::host_vector<float> outputSums_x_host = outputSums_x_device;
-    thrust::host_vector<float> outputSums_y_host = outputSums_y_device;
     std::vector<float> outputSums_host_x_stl;
     std::vector<float> outputSums_host_y_stl;
 
@@ -74,23 +72,13 @@ int main(int argc, char* argv[]) {
     thrust::host_vector<float> outputClusters_y_host = inputClusters_y_device;
     std::vector<float> outputClusters_host_x_st1;
     std::vector<float> outputClusters_host_y_st1;
-
-    thrust::host_vector<int> outputCount_host = outputClustersCount_device;
-    std::vector<int> outputClustersCount_host_st1;
-
-    
-
-    outputSums_host_x_stl.resize(outputSums_x_host.size());
-    thrust::copy(outputSums_x_host.begin(), outputSums_x_host.end(), outputSums_host_x_stl.begin());
-    outputSums_host_y_stl.resize(outputSums_y_host.size());
-    thrust::copy(outputSums_y_host.begin(), outputSums_y_host.end(), outputSums_host_y_stl.begin());
-
     outputClusters_host_x_st1.resize(outputClusters_x_host.size());
     thrust::copy(outputClusters_x_host.begin(), outputClusters_x_host.end(), outputClusters_host_x_st1.begin());
-
     outputClusters_host_y_st1.resize(outputClusters_y_host.size());
     thrust::copy(outputClusters_y_host.begin(), outputClusters_y_host.end(), outputClusters_host_y_st1.begin());
 
-    outputClustersCount_host_st1.resize(outputCount_host.size());
-    thrust::copy(outputCount_host.begin(), outputCount_host.end(), outputClustersCount_host_st1.begin());
+    for (int i = 0; i < outputClusters_host_x_st1.size(); i++) {
+        std::cout << "Cluster " << i << ": " << "(" << outputClusters_host_x_st1[i] << ", " << outputClusters_host_y_st1[i]<< ")" << std::endl;
+    }
+
 }
