@@ -12,12 +12,13 @@
 #include "commonDefines.h"
 #include <device_atomic_functions.h>
 
+//euclideain distance
 __device__ float euclideianDistance(float x1, float y1, float x2, float y2){
     float sum = float(pow(x1 - x2, 2) + pow(y1 - y2, 2));
     float distance = float(sqrt(sum));
     return distance;
 }
-
+//reset accumulators after each iteration
 __global__ void cuda_kMeans_clearAll(float* inputSums_x, float* inputSums_y, int* inputCounts) {
 	int tx = threadIdx.x;
 	inputSums_x[tx] = 0;
@@ -37,13 +38,13 @@ __global__ void cuda_kMeans_CalculateDistances(float* points, float* inputCluste
 	float2 cluster;
 
 	if (row < inputDimension) {
-		point = make_float2(points[it], points[it + 1]); //load input point
+		point = make_float2(points[it], points[it + 1]); //point
 		minDistance = 10000;
 		clusterIndex = 0;
 
 		for (int j = 0; j < clusterDimension; j++) {
-			cluster = make_float2(inputClusters_x[j], inputClusters_y[j]); //from central gpu memory
-			distance = euclideianDistance(point.x, point.y, cluster.x, cluster.y);
+			cluster = make_float2(inputClusters_x[j], inputClusters_y[j]); //clusters initializaition
+			distance = euclideianDistance(point.x, point.y, cluster.x, cluster.y);//distance between points and each cluster
 
 			if (distance < minDistance) {
 				minDistance = distance;
@@ -51,7 +52,7 @@ __global__ void cuda_kMeans_CalculateDistances(float* points, float* inputCluste
 			}
 
 		}
-	
+		//accumulators
 		atomicAdd(&outputSums_x[clusterIndex], point.x);
 		atomicAdd(&outputSums_y[clusterIndex], point.y);
 		atomicAdd(&clustersCount[clusterIndex], 1);
@@ -62,6 +63,7 @@ __global__ void cuda_kMeans_CalculateDistances(float* points, float* inputCluste
 
 __global__ void cuda_kMeans_updateCentroids(float* inputClusters_x, float* inputClusters_y, float* inputSums_x, float* inputSums_y, int* inputCounts) {
 	int cluster = threadIdx.x;
+	//if a cluster has 0 points, do nothing
 	int count = max(1, inputCounts[cluster]);
 	inputClusters_x[cluster] = inputSums_x[cluster] / count;
 	inputClusters_y[cluster] = inputSums_y[cluster] / count;

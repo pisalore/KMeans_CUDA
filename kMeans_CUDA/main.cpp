@@ -21,16 +21,17 @@ void cuda_kMeans_ClearAll_wrapper(float* inputSums_x, float* inputSums_y, int* i
 
 
 int main(int argc, char* argv[]) {
+    //load file and data structures initialization using thrust library
     std::string filename = "datasets/dataset1000.csv";
     std::vector<float> inputPoints;
-    std::vector<float> inputClusters_x;
-    std::vector<float> inputClusters_y;
-    std::vector<float> clusterSums_x(CLUSTERS_NUMBER , 0);
-    std::vector<float> clusterSums_y(CLUSTERS_NUMBER, 0);
-    std::vector<int> clustersCounter(CLUSTERS_NUMBER, 0);
+    std::vector<float> inputClusters_x; //clusters x coordinates
+    std::vector<float> inputClusters_y; //clusters y coordinates
+    std::vector<float> clusterSums_x(CLUSTERS_NUMBER , 0); // x accumulator
+    std::vector<float> clusterSums_y(CLUSTERS_NUMBER, 0); // y accumulator
+    std::vector<int> clustersCounter(CLUSTERS_NUMBER, 0); //clusters points counter
     std::string delimiter = ";";
 
-    read2VecFrom(filename, delimiter, inputPoints);
+    read2VecFrom(filename, delimiter, inputPoints); //points initialization
     initializeClusters(CLUSTERS_NUMBER, inputClusters_x, inputClusters_y, inputPoints);
     int datasetDim = inputPoints.size() / 2;
 
@@ -41,7 +42,7 @@ int main(int argc, char* argv[]) {
     thrust::device_vector<float> outputSums_y_device = clusterSums_y;
     thrust::device_vector<int> outputClustersCount_device = clustersCounter;
 
-
+    //pointer to data for CPU-GPU comunications
     float* inputPoints_ptr_device = thrust::raw_pointer_cast(&inputPoints_device[0]);
     float* inputClusters_x_ptr_device = thrust::raw_pointer_cast(&inputClusters_x_device[0]);
     float* inputClusters_y_ptr_device = thrust::raw_pointer_cast(&inputClusters_y_device[0]);
@@ -51,10 +52,11 @@ int main(int argc, char* argv[]) {
 
     dim3 gridDim = dim3(ceil((float)(datasetDim) / BLOCK_DIM));
     dim3 blockDim = dim3(BLOCK_DIM);
-
     
+    //computation start
     std::cout << "K Means started. " << std::endl;
     double t1 = omp_get_wtime();
+
     for (int i = 0; i < MAX_ITERATIONS; i++) {
         cuda_kMeans_ClearAll_wrapper(outputSums_x_ptr_device, outputSums_y_ptr_device, outputClustersCount_ptr_device, 1, CLUSTERS_NUMBER);
         cuda_kMeans_CalculateDistances_wrapper(inputPoints_ptr_device, inputClusters_x_ptr_device, inputClusters_y_ptr_device, outputClustersCount_ptr_device, outputSums_x_ptr_device, outputSums_y_ptr_device, datasetDim, VECTOR_DIM, CLUSTERS_NUMBER, gridDim, blockDim);
@@ -65,6 +67,7 @@ int main(int argc, char* argv[]) {
     double t2 = omp_get_wtime() - t1;
     std::cout << "K Means completed in: " << t2 << std::endl;
 
+    //Store and save results
     std::vector<float> outputSums_host_x_stl;
     std::vector<float> outputSums_host_y_stl;
     std::vector<float> centroids;
