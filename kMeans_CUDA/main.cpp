@@ -21,7 +21,7 @@ void cuda_kMeans_ClearAll_wrapper(float* inputSums_x, float* inputSums_y, int* i
 
 
 int main(int argc, char* argv[]) {
-    std::string filename = "datasets/dataset200000.csv";
+    std::string filename = "datasets/dataset1000.csv";
     std::vector<float> inputPoints;
     std::vector<float> inputClusters_x;
     std::vector<float> inputClusters_y;
@@ -67,6 +67,7 @@ int main(int argc, char* argv[]) {
 
     std::vector<float> outputSums_host_x_stl;
     std::vector<float> outputSums_host_y_stl;
+    std::vector<float> centroids;
 
     thrust::host_vector<float> outputClusters_x_host = inputClusters_x_device;
     thrust::host_vector<float> outputClusters_y_host = inputClusters_y_device;
@@ -79,6 +80,10 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < outputClusters_host_x_st1.size(); i++) {
         std::cout << "Cluster " << i << ": " << "(" << outputClusters_host_x_st1[i] << ", " << outputClusters_host_y_st1[i]<< ")" << std::endl;
+        centroids.push_back(outputClusters_host_x_st1[i]);
+        centroids.push_back(outputClusters_host_y_st1[i]);
     }
+
+    write2VecTo(std::string("centroids.csv"), delimiter, centroids);
 
 }
