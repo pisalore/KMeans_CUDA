@@ -21,7 +21,7 @@ void cuda_kMeans_ClearAll_wrapper(float* inputSums_x, float* inputSums_y, int* i
 
 
 int main(int argc, char* argv[]) {
-    std::string filename = "datasets/dataset300000.csv";
+    std::string filename = "datasets/dataset100000.csv";
     std::vector<float> inputPoints;
     std::vector<float> inputClusters_x;
     std::vector<float> inputClusters_y;
@@ -53,7 +53,8 @@ int main(int argc, char* argv[]) {
     dim3 blockDim = dim3(BLOCK_DIM);
 
     
-    std::cout << "K Means Computation started. " << std::endl;
+    std::cout << "K Means started. " << std::endl;
+    double t1 = omp_get_wtime();
     double t1 = omp_get_wtime();
     for (int i = 0; i < MAX_ITERATIONS; i++) {
         cuda_kMeans_ClearAll_wrapper(outputSums_x_ptr_device, outputSums_y_ptr_device, outputClustersCount_ptr_device, 1, CLUSTERS_NUMBER);
@@ -61,6 +62,9 @@ int main(int argc, char* argv[]) {
         cudaDeviceSynchronize();
         cuda_kMeans_UpdateClusters_wrapper(inputClusters_x_ptr_device, inputClusters_y_ptr_device, outputSums_x_ptr_device, outputSums_y_ptr_device, outputClustersCount_ptr_device, 1, CLUSTERS_NUMBER);
     }
+
+    double t2 = omp_get_wtime() - t1;
+    std::cout << "K Means completed in: " << t2 << std::endl;
 
     thrust::host_vector<float> outputSums_x_host = outputSums_x_device;
     thrust::host_vector<float> outputSums_y_host = outputSums_y_device;
