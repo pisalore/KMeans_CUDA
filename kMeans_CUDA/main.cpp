@@ -55,7 +55,6 @@ int main(int argc, char* argv[]) {
     
     std::cout << "K Means started. " << std::endl;
     double t1 = omp_get_wtime();
-    double t1 = omp_get_wtime();
     for (int i = 0; i < MAX_ITERATIONS; i++) {
         cuda_kMeans_ClearAll_wrapper(outputSums_x_ptr_device, outputSums_y_ptr_device, outputClustersCount_ptr_device, 1, CLUSTERS_NUMBER);
         cuda_kMeans_CalculateDistances_wrapper(inputPoints_ptr_device, inputClusters_x_ptr_device, inputClusters_y_ptr_device, outputClustersCount_ptr_device, outputSums_x_ptr_device, outputSums_y_ptr_device, datasetDim, VECTOR_DIM, CLUSTERS_NUMBER, gridDim, blockDim);
